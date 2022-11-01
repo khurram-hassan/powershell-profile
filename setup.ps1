@@ -20,6 +20,8 @@ if (-not(Test-Path -Path $PROFILE -PathType Leaf)) {
 #
 winget install -e --accept-source-agreements --accept-package-agreements JanDeDobbeleer.OhMyPosh
 
+winget install GNU.Nano
+
 # Font Install
 Invoke-RestMethod https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/CascadiaCode.zip?WT.mc_id=-blog-scottha -o cove.zip
 
