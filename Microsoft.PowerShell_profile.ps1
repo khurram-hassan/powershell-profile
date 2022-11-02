@@ -24,6 +24,20 @@ $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administ
 function cd...  { Set-Location ..\.. }
 function cd.... { Set-Location ..\..\.. }
 
+#go to a directory even in path is a file.
+function GotoDir($dir)
+{
+    if ((Get-Item $dir -ErrorAction SilentlyContinue) -is [System.IO.DirectoryInfo])
+    {
+        Set-Location $dir
+    }
+    else
+    {
+        Set-Location (Split-Path -Path $dir)
+    }
+}
+Set-Alias -Name gd -Value GotoDir
+
 # Compute file hashes - useful for checking successful downloads 
 function md5    { Get-FileHash -Algorithm MD5 $args }
 function sha1   { Get-FileHash -Algorithm SHA1 $args }
