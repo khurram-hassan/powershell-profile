@@ -97,14 +97,20 @@ function dirs
 # of PowerShell is started.
 function admin
 {
+    $pwsh = "$psHome\powershell.exe"
+    if(Test-Path "$psHome\pwsh.exe")
+    {
+        $pwsh = "$psHome\pwsh.exe"
+    }
+
     if ($args.Count -gt 0)
     {   
        $argList = "& '" + $args + "'"
-       Start-Process "$psHome\powershell.exe" -Verb runAs -ArgumentList $argList
+       Start-Process $pwsh -Verb runAs -ArgumentList $argList
     }
     else
     {
-       Start-Process "$psHome\powershell.exe" -Verb runAs
+       Start-Process $pwsh -Verb runAs
     }
 }
 
