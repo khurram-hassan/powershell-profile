@@ -18,6 +18,10 @@ $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
 $principal = New-Object Security.Principal.WindowsPrincipal $identity
 $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
+function not-exist { -not (Test-Path $args) }
+Set-Alias !exist not-exist -Option "Constant, AllScope"
+Set-Alias exist Test-Path -Option "Constant, AllScope"
+
 # If so and the current host is a command line, then change to red color 
 # as warning to user that they are operating in an elevated context
 # Useful shortcuts for traversing directories
