@@ -182,7 +182,7 @@ function uptime {
     Get-WmiObject win32_operatingsystem | Select-Object csname, @{LABEL='LastBootUpTime';
     EXPRESSION={$_.ConverttoDateTime($_.lastbootuptime)}}
 }
-function reload-profile {
+function reset-profile {
     & $profile
 }
 function find-file($name) {
@@ -227,7 +227,11 @@ function pgrep($name) {
 
 
 ## Final Line to set prompt
-oh-my-posh --init --shell pwsh --config ~/jandedobbeleer.omp.json | Invoke-Expression
+#oh-my-posh --init --shell pwsh --config ~/jandedobbeleer.omp.json | Invoke-Expression
+oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/powerlevel10k_rainbow.omp.json" | Invoke-Expression
+#oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/jandedobbeleer.omp.json" | Invoke-Expression
+#oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/hunk.omp.json" | Invoke-Expression
+
 
 # Import the Chocolatey Profile that contains the necessary code to enable
 # tab-completions to function for `choco`.
