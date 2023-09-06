@@ -13,6 +13,9 @@
 ### This is the default policy on Windows Server 2012 R2 and above for server Windows. For 
 ### more information about execution policies, run Get-Help about_Execution_Policies.
 
+# Import Terminal Icons
+Import-Module -Name Terminal-Icons
+
 # Find out if the current user identity is elevated (has admin rights)
 $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
 $principal = New-Object Security.Principal.WindowsPrincipal $identity
@@ -25,7 +28,7 @@ Set-Alias exist Test-Path -Option "Constant, AllScope"
 # If so and the current host is a command line, then change to red color 
 # as warning to user that they are operating in an elevated context
 # Useful shortcuts for traversing directories
-function cd...  { Set-Location ..\.. }
+function cd... { Set-Location ..\.. }
 function cd.... { Set-Location ..\..\.. }
 
 #go to a directory even in path is a file.
@@ -43,17 +46,17 @@ function GotoDir($dir)
 Set-Alias -Name gd -Value GotoDir
 
 # Compute file hashes - useful for checking successful downloads 
-function md5    { Get-FileHash -Algorithm MD5 $args }
-function sha1   { Get-FileHash -Algorithm SHA1 $args }
+function md5 { Get-FileHash -Algorithm MD5 $args }
+function sha1 { Get-FileHash -Algorithm SHA1 $args }
 function sha256 { Get-FileHash -Algorithm SHA256 $args }
 
 # Quick shortcut to start notepad
-function n      { notepad $args }
+function n { notepad $args }
 
 # Drive shortcuts
-function HKLM:  { Set-Location HKLM: }
-function HKCU:  { Set-Location HKCU: }
-function Env:   { Set-Location Env: }
+function HKLM: { Set-Location HKLM: }
+function HKCU: { Set-Location HKCU: }
+function Env: { Set-Location Env: }
 
 # Creates drive shortcut for Work Folders, if current user account is using it
 if (Test-Path "$env:USERPROFILE\Work Folders")
@@ -65,9 +68,9 @@ if (Test-Path "$env:USERPROFILE\Work Folders")
 # Set up command prompt and window title. Use UNIX-style convention for identifying 
 # whether user is elevated (root) or not. Window title shows current version of PowerShell
 # and appends [ADMIN] if appropriate for easy taskbar identification
-function prompt 
+function prompt
 { 
-    if ($isAdmin) 
+    if ($isAdmin)
     {
         "[" + (Get-Location) + "] # " 
     }
@@ -144,15 +147,17 @@ Remove-Variable principal
 
 Function Test-CommandExists
 {
- Param ($command)
- $oldPreference = $ErrorActionPreference
- $ErrorActionPreference = 'SilentlyContinue'
- try {if(Get-Command $command){RETURN $true}}
- Catch {Write-Host "$command does not exist"; RETURN $false}
- Finally {$ErrorActionPreference=$oldPreference}
+    Param ($command)
+    $oldPreference = $ErrorActionPreference
+    $ErrorActionPreference = 'SilentlyContinue'
+    try { if (Get-Command $command) { RETURN $true } }
+    Catch { Write-Host "$command does not exist"; RETURN $false }
+    Finally { $ErrorActionPreference = $oldPreference }
 } 
 #
 # Aliases
+#
+# If your favorite editor is not here, add an elseif and ensure that the directory it is installed in exists in your $env:Path
 #
 if (Test-CommandExists nvim) {
     $EDITOR='nvim'
@@ -162,6 +167,14 @@ if (Test-CommandExists nvim) {
     $EDITOR='vim'
 } elseif (Test-CommandExists vi) {
     $EDITOR='vi'
+} elseif (Test-CommandExists code) {
+    $EDITOR='code'
+} elseif (Test-CommandExists notepad) {
+    $EDITOR='notepad'
+} elseif (Test-CommandExists notepad++) {
+    $EDITOR='notepad++'
+} elseif (Test-CommandExists sublime_text) {
+    $EDITOR='sublime_text'
 } elseif (Test-CommandExists nano) {
     $EDITOR='nano'
 }
@@ -189,27 +202,36 @@ Function Get-PubIP {
     (Invoke-WebRequest http://ifconfig.me/ip ).Content
 }
 function uptime {
-    Get-WmiObject win32_operatingsystem | Select-Object csname, @{LABEL='LastBootUpTime';
-    EXPRESSION={$_.ConverttoDateTime($_.lastbootuptime)}}
+    #Windows Powershell only
+	If ($PSVersionTable.PSVersion.Major -eq 5 ) {
+		Get-WmiObject win32_operatingsystem |
+        Select-Object @{EXPRESSION={ $_.ConverttoDateTime($_.lastbootuptime)}} | Format-Table -HideTableHeaders
+	} Else {
+        net statistics workstation | Select-String "since" | foreach-object {$_.ToString().Replace('Statistics since ', '')}
+    }
 }
+
 function reset-profile {
     & $profile
 }
 function find-file($name) {
     Get-ChildItem -recurse -filter "*${name}*" -ErrorAction SilentlyContinue | ForEach-Object {
-            $place_path = $_.directory
-            Write-Output "${place_path}\${_}"
+        $place_path = $_.directory
+        Write-Output "${place_path}\${_}"
     }
 }
 function unzip ($file) {
     Write-Output("Extracting", $file, "to", $pwd)
-	$fullFile = Get-ChildItem -Path $pwd -Filter .\cove.zip | ForEach-Object{$_.FullName}
+    $fullFile = Get-ChildItem -Path $pwd -Filter .\cove.zip | ForEach-Object { $_.FullName }
     Expand-Archive -Path $fullFile -DestinationPath $pwd
+}
+function ix ($file) {
+    curl.exe -F "f:1=@$file" ix.io
 }
 function grep($regex, $dir) {
     if ( $dir ) {
-            Get-ChildItem $dir | select-string $regex
-            return
+        Get-ChildItem $dir | select-string $regex
+        return
     }
     $input | select-string $regex
 }
@@ -219,7 +241,7 @@ function touch($file) {
 function df {
     get-volume
 }
-function sed($file, $find, $replace){
+function sed($file, $find, $replace) {
     (Get-Content $file).replace("$find", $replace) | Set-Content $file
 }
 function which($name) {
@@ -237,7 +259,7 @@ function pgrep($name) {
 
 
 ## Final Line to set prompt
-#oh-my-posh --init --shell pwsh --config ~/jandedobbeleer.omp.json | Invoke-Expression
+#oh-my-posh init pwsh --config ~/jandedobbeleer.omp.json | Invoke-Expression
 oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/powerlevel10k_rainbow.omp.json" | Invoke-Expression
 #oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/jandedobbeleer.omp.json" | Invoke-Expression
 #oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/hunk.omp.json" | Invoke-Expression
@@ -251,5 +273,5 @@ Import-Module -Name Terminal-Icons
 # See https://ch0.co/tab-completion for details.
 $ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 if (Test-Path($ChocolateyProfile)) {
-  Import-Module "$ChocolateyProfile"
+    Import-Module "$ChocolateyProfile"
 }
