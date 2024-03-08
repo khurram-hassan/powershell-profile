@@ -13,8 +13,11 @@ if (-not(Test-Path -Path $PROFILE -PathType Leaf)) {
              }
          }
 
-         Invoke-RestMethod https://raw.githubusercontent.com/khurram-hassan/powershell-profile/main/Microsoft.PowerShell_profile.ps1 -o $PROFILE
+         Invoke-RestMethod https://raw.githubusercontent.com/khurram-hassan/powershell-profile/main/Microsoft.PowerShell_profile.ps1 -OutFile $PROFILE
          Write-Host "The profile @ [$PROFILE] has been created."
+        write-host "if you want to add any persistent components, please do so at
+        [$HOME\Documents\PowerShell\Profile.ps1] as there is an updater in the installed profile 
+        which uses the hash to update the profile and will lead to loss of changes"
      }
      catch {
         throw $_.Exception.Message
@@ -22,9 +25,12 @@ if (-not(Test-Path -Path $PROFILE -PathType Leaf)) {
  }
 # If the file already exists, show the message and do nothing.
  else {
-    Get-Item -Path $PROFILE | Move-Item -Destination oldprofile.ps1
+		 Get-Item -Path $PROFILE | Move-Item -Destination oldprofile.ps1 -Force
     Invoke-RestMethod https://raw.githubusercontent.com/khurram-hassan/powershell-profile/main/Microsoft.PowerShell_profile.ps1 -o $PROFILE
     Write-Host "The profile @ [$PROFILE] has been created and old profile removed."
+         write-host "Please back up any persistent components of your old profile to [$HOME\Documents\PowerShell\Profile.ps1]
+         as there is an updater in the installed profile which uses the hash to update the profile 
+         and will lead to loss of changes"
  }
 & $profile
 
@@ -71,4 +77,4 @@ if ($fontFamilies -notcontains "FiraCode NF") {
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
 # Terminal Icons Install
-Install-Module -Name Terminal-Icons -Repository PSGallery
+Install-Module -Name Terminal-Icons -Repository PSGallery -Force
