@@ -13,6 +13,24 @@
 ### This is the default policy on Windows Server 2012 R2 and above for server Windows. For 
 ### more information about execution policies, run Get-Help about_Execution_Policies.
 
+#check for updates
+try{
+    $url = "https://raw.githubusercontent.com/khurram-hassan/powershell-profile/main/Microsoft.PowerShell_profile.ps1"
+    $oldhash = Get-FileHash $PROFILE
+    Invoke-RestMethod $url -OutFile "$env:temp/Microsoft.PowerShell_profile.ps1"
+    $newhash = Get-FileHash "$env:temp/Microsoft.PowerShell_profile.ps1"
+    if ($newhash -ne $oldhash) {
+        Get-Content "$env:temp/Microsoft.PowerShell_profile.ps1" | Set-Content $PROFILE
+        . $PROFILE
+        return
+    }
+}
+catch {
+    Write-Error "unable to check for `$profile updates"
+}
+Remove-Variable @("newhash", "oldhash", "url")
+Remove-Item  "$env:temp/Microsoft.PowerShell_profile.ps1"
+
 # Import Terminal Icons
 Import-Module -Name Terminal-Icons
 
@@ -21,11 +39,29 @@ $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
 $principal = New-Object Security.Principal.WindowsPrincipal $identity
 $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
+function not-exist { -not (Test-Path $args) }
+Set-Alias !exist not-exist -Option "Constant, AllScope"
+Set-Alias exist Test-Path -Option "Constant, AllScope"
+
 # If so and the current host is a command line, then change to red color 
 # as warning to user that they are operating in an elevated context
 # Useful shortcuts for traversing directories
 function cd... { Set-Location ..\.. }
 function cd.... { Set-Location ..\..\.. }
+
+#go to a directory even in path is a file.
+function GotoDir($dir)
+{
+    if ((Get-Item $dir -ErrorAction SilentlyContinue) -is [System.IO.DirectoryInfo])
+    {
+        Set-Location $dir
+    }
+    else
+    {
+        Set-Location (Split-Path -Path $dir)
+    }
+}
+Set-Alias -Name gd -Value GotoDir
 
 # Compute file hashes - useful for checking successful downloads 
 function md5 { Get-FileHash -Algorithm MD5 $args }
@@ -41,7 +77,8 @@ function HKCU: { Set-Location HKCU: }
 function Env: { Set-Location Env: }
 
 # Creates drive shortcut for Work Folders, if current user account is using it
-if (Test-Path "$env:USERPROFILE\Work Folders") {
+if (Test-Path "$env:USERPROFILE\Work Folders")
+{
     New-PSDrive -Name Work -PSProvider FileSystem -Root "$env:USERPROFILE\Work Folders" -Description "Work Folders"
     function Work: { Set-Location Work: }
 }
@@ -49,24 +86,33 @@ if (Test-Path "$env:USERPROFILE\Work Folders") {
 # Set up command prompt and window title. Use UNIX-style convention for identifying 
 # whether user is elevated (root) or not. Window title shows current version of PowerShell
 # and appends [ADMIN] if appropriate for easy taskbar identification
-function prompt { 
-    if ($isAdmin) {
+function prompt
+{ 
+    if ($isAdmin)
+    {
         "[" + (Get-Location) + "] # " 
-    } else {
+    }
+    else 
+    {
         "[" + (Get-Location) + "] $ "
     }
 }
 
 $Host.UI.RawUI.WindowTitle = "PowerShell {0}" -f $PSVersionTable.PSVersion.ToString()
-if ($isAdmin) {
+if ($isAdmin)
+{
     $Host.UI.RawUI.WindowTitle += " [ADMIN]"
 }
 
 # Does the the rough equivalent of dir /s /b. For example, dirs *.png is dir /s /b *.png
-function dirs {
-    if ($args.Count -gt 0) {
+function dirs
+{
+    if ($args.Count -gt 0)
+    {
         Get-ChildItem -Recurse -Include "$args" | Foreach-Object FullName
-    } else {
+    }
+    else
+    {
         Get-ChildItem -Recurse | Foreach-Object FullName
     }
 }
@@ -74,12 +120,22 @@ function dirs {
 # Simple function to start a new elevated process. If arguments are supplied then 
 # a single command is started with admin rights; if not then a new admin instance
 # of PowerShell is started.
-function admin {
-    if ($args.Count -gt 0) {   
-        $argList = "& '" + $args + "'"
-        Start-Process "$psHome\powershell.exe" -Verb runAs -ArgumentList $argList
-    } else {
-        Start-Process "$psHome\powershell.exe" -Verb runAs
+function admin
+{
+    $pwsh = "$psHome\powershell.exe"
+    if(Test-Path "$psHome\pwsh.exe")
+    {
+        $pwsh = "$psHome\pwsh.exe"
+    }
+
+    if ($args.Count -gt 0)
+    {   
+       $argList = "& '" + $args + "'"
+       Start-Process $pwsh -Verb runAs -ArgumentList $argList
+    }
+    else
+    {
+       Start-Process $pwsh -Verb runAs
     }
 }
 
@@ -90,10 +146,14 @@ Set-Alias -Name sudo -Value admin
 
 
 # Make it easy to edit this profile once it's installed
-function Edit-Profile {
-    if ($host.Name -match "ise") {
+function Edit-Profile
+{
+    if ($host.Name -match "ise")
+    {
         $psISE.CurrentPowerShellTab.Files.Add($profile.CurrentUserAllHosts)
-    } else {
+    }
+    else
+    {
         notepad $profile.CurrentUserAllHosts
     }
 }
@@ -103,7 +163,8 @@ function Edit-Profile {
 Remove-Variable identity
 Remove-Variable principal
 
-Function Test-CommandExists {
+Function Test-CommandExists
+{
     Param ($command)
     $oldPreference = $ErrorActionPreference
     $ErrorActionPreference = 'SilentlyContinue'
@@ -132,22 +193,30 @@ if (Test-CommandExists nvim) {
     $EDITOR='notepad++'
 } elseif (Test-CommandExists sublime_text) {
     $EDITOR='sublime_text'
+} elseif (Test-CommandExists nano) {
+    $EDITOR='nano'
+}
+else {
+    $EDITOR='Get-Content'
 }
 Set-Alias -Name vim -Value $EDITOR
 
 
 function ll { Get-ChildItem -Path $pwd -File }
-function g { Set-Location $HOME\Documents\Github }
-function gcom {
-    git add .
-    git commit -m "$args"
+
+function g { Set-Location D:\Project\GitHub }
+function gcom
+{
+	git add .
+	git commit -m "$args"
 }
-function lazyg {
-    git add .
-    git commit -m "$args"
-    git push
+function lazyg
+{
+	git add .
+	git commit -m "$args"
+	git push
 }
-function Get-PubIP {
+Function Get-PubIP {
     (Invoke-WebRequest http://ifconfig.me/ip ).Content
 }
 function uptime {
@@ -160,7 +229,7 @@ function uptime {
     }
 }
 
-function reload-profile {
+function reset-profile {
     & $profile
 }
 function find-file($name) {
@@ -206,9 +275,7 @@ function pgrep($name) {
     Get-Process $name
 }
 
-
-## Final Line to set prompt
-oh-my-posh init pwsh --config ~/jandedobbeleer.omp.json | Invoke-Expression
+Import-Module -Name Terminal-Icons
 
 # Import the Chocolatey Profile that contains the necessary code to enable
 # tab-completions to function for `choco`.
@@ -219,3 +286,14 @@ $ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 if (Test-Path($ChocolateyProfile)) {
     Import-Module "$ChocolateyProfile"
 }
+
+Invoke-Expression (& { (zoxide init powershell | Out-String) })
+
+
+## Final Line to set prompt
+#oh-my-posh init pwsh --config https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/cobalt2.omp.json | Invoke-Expression
+#oh-my-posh init pwsh --config ~/jandedobbeleer.omp.json | Invoke-Expression
+#oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/powerlevel10k_rainbow.omp.json" | Invoke-Expression
+#oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/jandedobbeleer.omp.json" | Invoke-Expression
+#oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/hunk.omp.json" | Invoke-Expression
+oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/cobalt2.omp.json" | Invoke-Expression

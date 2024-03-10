@@ -292,8 +292,5 @@ Invoke-Expression (& { (zoxide init powershell | Out-String) })
 
 ## Final Line to set prompt
 #oh-my-posh init pwsh --config https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/cobalt2.omp.json | Invoke-Expression
-#oh-my-posh init pwsh --config ~/jandedobbeleer.omp.json | Invoke-Expression
-#oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/powerlevel10k_rainbow.omp.json" | Invoke-Expression
+oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/powerlevel10k_rainbow.omp.json" | Invoke-Expression
 #oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/jandedobbeleer.omp.json" | Invoke-Expression
-#oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/hunk.omp.json" | Invoke-Expression
-oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/cobalt2.omp.json" | Invoke-Expression

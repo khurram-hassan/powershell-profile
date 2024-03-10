@@ -40,8 +40,6 @@ winget install -e --accept-source-agreements --accept-package-agreements JanDeDo
 
 Install-Module -Name Terminal-Icons -Repository PSGallery
 
-winget install GNU.Nano
-
 # Font Install
 #Invoke-RestMethod https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/CascadiaCode.zip?WT.mc_id=-blog-scottha -o cove.zip
 #Invoke-RestMethod "https://github.com/ryanoasis/nerd-fonts/releases/download/v2.3.3/FiraCode.zip" -o FiraCode.zip
