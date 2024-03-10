@@ -26,7 +26,7 @@ if (-not(Test-Path -Path $PROFILE -PathType Leaf)) {
 # If the file already exists, show the message and do nothing.
  else {
 		 Get-Item -Path $PROFILE | Move-Item -Destination oldprofile.ps1 -Force
-    Invoke-RestMethod https://raw.githubusercontent.com/khurram-hassan/powershell-profile/main/Microsoft.PowerShell_profile.ps1 -o $PROFILE
+    Invoke-RestMethod https://raw.githubusercontent.com/khurram-hassan/powershell-profile/main/Microsoft.PowerShell_profile.ps1 -OutFile $PROFILE
     Write-Host "The profile @ [$PROFILE] has been created and old profile removed."
          write-host "Please back up any persistent components of your old profile to [$HOME\Documents\PowerShell\Profile.ps1]
          as there is an updater in the installed profile which uses the hash to update the profile 
